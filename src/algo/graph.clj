@@ -47,19 +47,22 @@
 
 
 (def g2 {#{:a :b} 1 #{:b :c} 3 #{:a :c} 2 #{:b :d} 4 #{:d :c} 5})
+;; mst of g2 = #{:a :b} #{:a :c} #{:b :d}
 
 ;;
 ;; Prism's Maximum spanning Tree
 ;;
 (defn prism-mst
   "Find the edges connecting all vertices of the graph with minimun cost :
-Start from any vertices
+  1. Initialiaze visited set with any vertices
+  2. Append the vertice not already visited with the minimal cost
+  3. Stop when all vertices are visited
 "
   [g]
-  (let [edges (set (apply concat (keys g)))
-        start (first edges)]
+  (let [vertices (set (apply concat (keys g)))
+        start (first vertices)]
     (loop [x #{start} t {}]
-          (if (= x edges)
+          (if (= x vertices) ;;stop when all vertices visited
             t
             (let [vs (into (sorted-map-by <=)
                            ;;get all edges where one vertice is in x and the other not
@@ -72,3 +75,62 @@ Start from any vertices
                   [c1 v1] (first vs)
                   ]
               (recur (into x v1) (assoc t v1 c1)))))))
+
+;;
+;; Kruskal's Maximum Spanning Tree
+;;
+
+(defn merge-partition [part k1 k2]
+  (-> part
+      (update-in [k2] (comp vec concat) (part k1))
+      (dissoc k1)))
+
+(defprotocol FindUnion
+  (connected? [this])
+  (fu-find [this element])
+  (fu-union [this s1 s2]))
+
+;; elements stores the group for each element
+;; groups gives the elements of each group
+(defrecord SimpleFindUnion
+    [elements groups]
+  FindUnion
+  (connected? [this] (= 1 (count (:groups this))))
+  (fu-find [this element] ((:elements this) element))
+  (fu-union [this g1 g2]
+    (let [elts1 (set ((:groups this) g1))
+          ;; move elements of g1 to g2
+          groups (merge-partition (:groups this) g1 g2)
+          ;; update group for each element in s1
+          elements (into {} (for [[k v] (:elements this)] [k (if (elts1 k) g2 v)]))]
+      (SimpleFindUnion. elements groups))))
+
+(defn find-union [vertices]
+  (SimpleFindUnion. (zipmap vertices vertices)
+                    (zipmap vertices (map vector vertices))))
+
+(defn kruskal-mst
+  "Find the edges connecting all vertices of the graph with minimun cost :
+   1. Order the edges by cost
+   2. Loop through the ordered edges
+   3. include an edge when it doesn't introduce any cycle
+   4. Stop when all vertices are connected
+"
+  [g]
+  (let [edges (map first (sort-by second g))
+        vertices (reduce (fn [s e] (into s e)) (keys g))]
+    (loop [t []
+           sfu (find-union vertices)
+           r edges]
+      (cond
+       (connected? sfu) ;;stop when all vertices are connected
+       t
+       (nil? (seq r)) ;; graph not connected
+       nil
+       :else (let [[s1 s2] (map #(fu-find sfu %) (first r))]
+               (if (= s1 s2) ;;cycle detected : skip this edge
+                 (recur t sfu (next r))
+                 ;;edge accepted
+                 (recur (conj t (first r))
+                        (fu-union sfu s1 s2)
+                        (next r))))))))
