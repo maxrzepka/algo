@@ -1,6 +1,11 @@
 # algo
 
-Various algorithms implemented in clojure
+Misc algorithms implemented in clojure.
+
+Sources :
+
+  - http://rosalind.info/problems/list-view/#
+  - http://algs4.cs.princeton.edu/home/
 
 ## License
 

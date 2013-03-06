@@ -128,7 +128,8 @@
        (nil? (seq r)) ;; graph not connected
        nil
        :else (let [[s1 s2] (map #(fu-find sfu %) (first r))]
-               (if (= s1 s2) ;;cycle detected : skip this edge
+               (if (= s1 s2)
+                 ;;cycle detected : skip this edge
                  (recur t sfu (next r))
                  ;;edge accepted
                  (recur (conj t (first r))
