@@ -1,4 +1,5 @@
-(ns algo.graph)
+(ns algo.graph
+  (:require [algo.data :as d]))
 
 ;; Greedy Algorithms
 ;;
@@ -80,35 +81,6 @@
 ;; Kruskal's Maximum Spanning Tree
 ;;
 
-(defn merge-partition [part k1 k2]
-  (-> part
-      (update-in [k2] (comp vec concat) (part k1))
-      (dissoc k1)))
-
-(defprotocol FindUnion
-  (connected? [this])
-  (fu-find [this element])
-  (fu-union [this s1 s2]))
-
-;; elements stores the group for each element
-;; groups gives the elements of each group
-(defrecord SimpleFindUnion
-    [elements groups]
-  FindUnion
-  (connected? [this] (= 1 (count (:groups this))))
-  (fu-find [this element] ((:elements this) element))
-  (fu-union [this g1 g2]
-    (let [elts1 (set ((:groups this) g1))
-          ;; move elements of g1 to g2
-          groups (merge-partition (:groups this) g1 g2)
-          ;; update group for each element in s1
-          elements (into {} (for [[k v] (:elements this)] [k (if (elts1 k) g2 v)]))]
-      (SimpleFindUnion. elements groups))))
-
-(defn find-union [vertices]
-  (SimpleFindUnion. (zipmap vertices vertices)
-                    (zipmap vertices (map vector vertices))))
-
 (defn kruskal-mst
   "Find the edges connecting all vertices of the graph with minimun cost :
    1. Order the edges by cost
@@ -120,18 +92,18 @@
   (let [edges (map first (sort-by second g))
         vertices (reduce (fn [s e] (into s e)) (keys g))]
     (loop [t []
-           sfu (find-union vertices)
+           sfu (d/find-union vertices)
            r edges]
       (cond
-       (connected? sfu) ;;stop when all vertices are connected
+       (= 1 (d/fu-size sfu)) ;;stop when all vertices are connected
        t
        (nil? (seq r)) ;; graph not connected
        nil
-       :else (let [[s1 s2] (map #(fu-find sfu %) (first r))]
+       :else (let [[s1 s2] (map #(d/fu-find sfu %) (first r))]
                (if (= s1 s2)
                  ;;cycle detected : skip this edge
                  (recur t sfu (next r))
                  ;;edge accepted
                  (recur (conj t (first r))
-                        (fu-union sfu s1 s2)
+                        (d/fu-union sfu s1 s2)
                         (next r))))))))
