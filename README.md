@@ -2,11 +2,11 @@
 
 Misc algorithms implemented in clojure from various sources :
 
-  - [http://rosalind.info/problems/list-view/#](Rosalind) [https://github.com/maxrzepka/algo/blob/master/src/clj/algo/bioinfo.clj](Source code)
-  - [http://algs4.cs.princeton.edu/home/](Algorithms, 4th Edition by Robert Sedgewick and Kevin Wayne)
-    - [https://github.com/maxrzepka/algo/blob/master/src/clj/algo/find_union.clj](Find Union) based on http://algs4.cs.princeton.edu/15uf/
-  - [http://mitpress.mit.edu/books/algorithms-unlocked](Algorithms Unlocked By Thomas H.Cormen) 
-    - [https://github.com/maxrzepka/algo/blob/master/src/clj/algo/sorting.clj](Chapter 3 Sorting)
+  - [Rosalind](http://rosalind.info/problems/list-view/#) : [Source code](https://github.com/maxrzepka/algo/blob/master/src/clj/algo/bioinfo.clj)
+  - [Algorithms, 4th Edition by Robert Sedgewick and Kevin Wayne](http://algs4.cs.princeton.edu/home/)
+    - [Find Union](https://github.com/maxrzepka/algo/blob/master/src/clj/algo/find_union.clj) based on http://algs4.cs.princeton.edu/15uf/
+  - [Algorithms Unlocked By Thomas H.Cormen](http://mitpress.mit.edu/books/algorithms-unlocked)
+    - [Chapter 3 Sorting](https://github.com/maxrzepka/algo/blob/master/src/clj/algo/sorting.clj)
 
 ## License
 
