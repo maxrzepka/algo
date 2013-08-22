@@ -64,6 +64,22 @@
   (doseq [[unsorted sorted] (seq datasets)]
     (is (= sorted (merge-sort unsorted)))))
 
+(deftest merge-sub-sort-test
+  (is (= [9 1 2 3 10] (merge-sort 1 [9 10 1 3 2])))
+  (is (= [9 1 10 2 3] (merge-sort 1 3 [9 10 1 2 3]))))
+
+(deftest pivot-partition-test
+  (is (= [[4 2] [5] [10 89 30]] (pivot-partition 2 [10 4 5 89 2 30])))
+  (is (= [[4 -89 2 5] [5] [10 30]] (pivot-partition 2 [10 4 5 -89 2 5 30]))))
+
+(deftest quick-sort-test
+  (doseq [[unsorted sorted] (seq datasets)]
+    (is (= sorted (quick-sort unsorted)))))
+
+(deftest qsort-last-test
+  (doseq [[unsorted sorted] (seq datasets)]
+    (is (= sorted (qsort-last unsorted)))))
+
 #_(deftest counting-sort-test
   (doseq [[unsorted sorted] (seq datasets)]
     (is (= sorted (counting-sort unsorted)))))
@@ -71,3 +87,5 @@
 #_(deftest radix-sort-test
   (doseq [[unsorted sorted] (seq datasets)]
     (is (= sorted (radix-sort unsorted)))))
+
+;; TODO Test performance 

@@ -96,35 +96,127 @@ If n is not provided, n = size of coll.
 
 ;; ## Merge Sort
 ;;
-;; inspired (partially copied) from [Alexei Sholik's gist](https://gist.github.com/alco/2135276)
+;; good source of inspiration : [Alexei Sholik's merge sort](https://gist.github.com/alco/2135276)
 (defn merge-seqs
   ([[a b]] (merge-seqs a b))
   ([a b]
      (loop [res [] a a b b]
-       (cond
-        (every? empty? [a b]) res
-        (empty? a) (recur (concat res b) a [])
-        (empty? b) (recur (concat res a) [] b)        
-        (< (first a) (first b)) (recur (conj res (first a)) (rest a) b)
-        :else (recur (conj res (first b)) a (rest b))))))
+       (let [x (first a) y (first b)]
+         (cond
+         (every? empty? [a b]) res
+         (nil? x) (recur (concat res b) a [])
+         (nil? y) (recur (concat res a) [] b)        
+         (< x y) (recur (conj res x) (rest a) b)
+         :else (recur (conj res y) a (rest b)))))))
 
 (defn merge-sort
   ([coll]
-     (cond (< (count coll) 2) coll
-           :else
-           (let [q (bit-shift-right (count coll)  1)]
-             (merge-seqs (map merge-sort (split-at q coll))))))
-  ([p r coll]
+     (if (< (count coll) 2)
+       coll        
+       (let [q (bit-shift-right (count coll)  1)]
+         (merge-seqs (map merge-sort (split-at q coll))))))
+  ([p coll]
+     (concat (take p coll)
+             (merge-sort (drop p coll))))
+  ([p r coll] 
      (concat (take p coll)
              (merge-sort (subvec coll p r))
              (drop r coll))))
 
 ;; ## Quick Sort
+;;
+;; It's classical example of recursion, here on JVM need to do tail-call recursion
+;;
+;; Helpful reading "Joy Of Clojure" by Fogus section 7.3 Thinking recursively
+;; GENERALIZED TAIL-CALL OPTIMIZATION
+;;
+
+(defn pivot-partition
+  "Returns 3 groups partitioning coll at k-th element (the pivot) :
+   - First one contains any elements lower than k-th element of coll
+   - Second one contains the pivot
+   - Third one contains any elements greater than k-th element of coll"
+  [k coll]
+  (let [pivot (nth coll k)]
+    (reduce (fn [[a p b] e]
+                        (cond (and (= e pivot) (empty? p))
+                              [a [pivot] b]
+                              (<= e pivot)
+                              [(conj a e) p b]
+                              :else
+                              [a p (conj b e)]))
+             [[] [] []] coll)))
+
+(defn single? [coll]
+  (< (count coll) 2))
 
 (defn quick-sort
-  ([coll] (quick-sort (count coll) coll))  
+  ([coll]
+     (loop [s [coll]]
+       (let [ns (filter seq
+                        (mapcat (fn [c] (pivot-partition (dec (count c)) c)) s))
+             done (every? single? ns)]
+         (if done 
+           (map first ns)
+           (recur ns)))))
   ([n coll]
-     coll))
+     (concat (take n coll) (quick-sort (drop n coll)))))
+
+;; ### Here some other solutions correct or not
+;; solution from http://groups.google.com/group/clojure/browse_thread/thread/6483c6750a4a24c2
+(defn qsort [[pivot & xs]]
+  (when pivot
+    (let [smaller #(< % pivot)]
+      (lazy-cat (qsort (filter smaller xs))
+                [pivot]
+                (qsort (remove smaller xs))))))
+
+(defn qsort-last
+  "Quick sort using where pivot is last element of coll"
+  [coll]
+  (when-let [pivot (last coll)] 
+    (let [smaller #(< % pivot)
+          coll (butlast coll)]
+      (concat (qsort-last (filter smaller coll))
+                [pivot]
+                (qsort-last (remove smaller coll))))))
+
+(defn quicksort-ext [l]
+  (letfn [(qsort [[pivot & xs]]
+            (when pivot
+              (let [smaller #(< % pivot)]
+                (lazy-cat (qsort (filter smaller xs))
+                          [pivot]
+                          (qsort (remove smaller xs))))))]
+    (qsort (shuffle l))))
+
+;; The most direct translation is raising StackOverflowError
+(defn quick-sort-KO
+    "Recursive sort algorithm that goes as follows :
+   - partition coll with pivot as last element of coll
+   - quick sort the 2 sub lists of the partition"
+  [coll]
+     (if (single? coll)
+       coll
+       (let [[a p b] (pivot-partition (dec (count coll)) coll)]
+         ;;using lazy-cat instead concat gives same error
+         (concat (quick-sort-KO a) [p] (quick-sort-KO b)))))
+
+;;
+;; TODO is quick-sort a case of mutual recursion ? if yes try to use trampoline 
+;; 
+(defn quick-sort-trampoline-KO [coll]
+  (letfn [(quick-sorter [a]
+            (fn [] (if (single? a)
+                     a
+                     (let [[aa p ab] (pivot-partition (dec (count a)) a)]
+                       (concat ((quick-sorter) aa) [p] ((quick-sorter) ab))))))
+          #_(quick-sorter1 [coll]
+            #(if (single? coll)
+              coll
+              (let [[a b] (pivot-partition (dec (count coll)) coll)]
+                (concat (quick-sort- a) (quick-sort- b)))))] 
+    (trampoline quick-sorter coll)))
 
 ;; ## Counting Sort
 
