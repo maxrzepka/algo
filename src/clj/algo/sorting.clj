@@ -162,9 +162,15 @@ If n is not provided, n = size of coll.
   ([n coll]
      (concat (take n coll) (quick-sort (drop n coll)))))
 
-;; ### Here some other solutions correct or not
-;; solution from http://groups.google.com/group/clojure/browse_thread/thread/6483c6750a4a24c2
-(defn qsort [[pivot & xs]]
+;; ### Here some other solutions
+;;
+;; Another solution available [here](http://groups.google.com/group/clojure/browse_thread/thread/6483c6750a4a24c2)
+;;
+;;    - QA Does lazy-cat can replace by concat ?
+;;    - QA Why qsort is not a mundane recursion ?
+(defn qsort
+  "Quick sort using where pivot is the first element of coll"
+  [[pivot & xs]]
   (when pivot
     (let [smaller #(< % pivot)]
       (lazy-cat (qsort (filter smaller xs))
@@ -181,7 +187,7 @@ If n is not provided, n = size of coll.
                 [pivot]
                 (qsort-last (remove smaller coll))))))
 
-(defn quicksort-ext [l]
+(defn qsort-shuffle [l]
   (letfn [(qsort [[pivot & xs]]
             (when pivot
               (let [smaller #(< % pivot)]
@@ -190,9 +196,13 @@ If n is not provided, n = size of coll.
                           (qsort (remove smaller xs))))))]
     (qsort (shuffle l))))
 
+;; ### Some incorrect solutions
+;;
 ;; The most direct translation is raising StackOverflowError
+;;
 (defn quick-sort-KO
-    "Recursive sort algorithm that goes as follows :
+  "Recursive sort algorithm that goes as follows :
+
    - partition coll with pivot as last element of coll
    - quick sort the 2 sub lists of the partition"
   [coll]
@@ -203,7 +213,7 @@ If n is not provided, n = size of coll.
          (concat (quick-sort-KO a) [p] (quick-sort-KO b)))))
 
 ;;
-;; TODO is quick-sort a case of mutual recursion ? if yes try to use trampoline 
+;; QA is quick-sort a case of mutual recursion ? if yes try to use trampoline 
 ;; 
 (defn quick-sort-trampoline-KO [coll]
   (letfn [(quick-sorter [a]
