@@ -1,6 +1,8 @@
 (ns algo.test.sorting
-  (:use algo.sorting
-        clojure.test))
+  (:use algo.sorting 
+        [clojure.test :only [deftest is]] 
+        [criterium.core :only [bench quick-bench]])
+)
 
 (def datasets
   "set of unsorted list and its sorted one "
@@ -88,4 +90,12 @@
   (doseq [[unsorted sorted] (seq datasets)]
     (is (= sorted (radix-sort unsorted)))))
 
-;; TODO Test performance 
+;; Some performance test
+
+(deftest ^:benchmark perf-test
+  (doseq [c [(shuffle (range 100))]
+          algo [qsort quick-sort qsort-last]]
+    (let [size (count c)]
+     (println "Bench " `algo " with vector of size " size)
+     (quick-bench (algo c)))))
+

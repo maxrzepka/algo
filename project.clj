@@ -6,4 +6,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [criterium "0.3.1"]]
   :source-paths       ["src" "src/clj"]
-  :java-source-paths  ["src/java"])
+  ;:java-source-paths  ["src/java"]
+  :test-selectors {:default #(not (some #{:benchmark} (keys %)))
+                   :benchmark :benchmark}
+  )
