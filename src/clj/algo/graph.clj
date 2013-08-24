@@ -1,7 +1,89 @@
 (ns algo.graph
   (:require [algo.data :as d]))
 
-;; Greedy Algorithms
+;;
+;; ## Directed Acyclic Graph
+;;
+;; Directed graph are represented as a list of t-uple (u,v) where u -> v
+;;
+;; 
+(def goalie
+  "Example taken from Chap 5 of Algo Unlocked by T.H. Cormen"
+  [[:undershorts :compresion-shorts]
+             [:compresion-shorts :hose]
+             [:compresion-shorts :cup]
+             [:socks :hose]
+             [:hose :pants]
+             [:cup :pants]
+             [:pants :skates]
+             [:skates :leg-pads]
+             [:t-shirt :chest-pad]
+             [:pants :sweater]
+             [:chest-pad :sweater]
+             [:sweater :mask]
+             [:mask :catch-glove]
+             [:leg-pads :catch-glove]
+             [:catch-glove :blocker]])
+
+
+(defn split-graph
+  "Given a map of vertices to their set of parents,
+returns (set of top vertices, list of degrees of graph without top vertices)"
+  [m degrees]
+  (let [top (set (keep (fn [[u d]] (when-not (> d 0) u)) degrees))]
+    [top (keep (fn [[u d]]
+            (when-not (top u) 
+              [u (- d (count (m u #{})))]))
+          degrees)]))
+
+(defn adjacents
+  "Given a directed graph,
+returns a map of vertices to their parent vertices"
+  [g]
+  (reduce (fn [a [u v]] (update-in a [v] (fnil conj #{}) u)) {} g))
+
+(defn degrees
+  "Given a directed graph,
+returns a map of all vertices with their degree (ie # of parent vertices)"
+  [g]
+  (let [vertices (set (mapcat identity g))]
+    (reduce (fn [a [u v]] (update-in a [v] inc))
+            (into {} (map vector vertices (repeat 0)))
+            g)))
+
+(defn topological-sort
+  "Returns a list of vertices in linear order
+g is a list of 2-uple of vertices (or nodes) (ie a directed graph) "
+  [g]
+  (let [m (adjacents g)
+        deg (seq (degrees g))]
+    ;;TODO is loop equivalent to iterate ?
+    (loop [deg deg res []]
+      (if (seq deg)
+        (let [[top new-deg] (split-graph m deg)]
+          (recur new-deg (concat res top)))
+        res))))
+
+;; loop is equivalent to iterate.
+;; 
+
+(defn topological-stepper [g]
+  (let [m (adjacents g)]
+    (fn [[deg res]]
+      (if (empty? deg)
+        [deg res]
+        (let [[top new-deg] (split-graph m deg)]
+          [new-deg (concat res top)])))))
+
+(defn topological-sort1
+  "Same as topological-sort but using iterate instead of loop"
+  [g]
+  (->> (iterate (topological-stepper g) [(degrees g) []])
+       (drop-while (comp not empty? first))
+       first
+       second))
+
+;; ## Greedy Algorithms
 ;;
 ;; Djikstra's Shortest Path
 ;;
