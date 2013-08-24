@@ -166,8 +166,9 @@ If n is not provided, n = size of coll.
 ;;
 ;; Another solution available [here](http://groups.google.com/group/clojure/browse_thread/thread/6483c6750a4a24c2)
 ;;
-;;    - QA Does lazy-cat can replace by concat ?
-;;    - QA Why qsort is not a mundane recursion ?
+;;    - Does lazy-cat can replace by concat ?
+;;    - Why qsort is not a mundane recursion ?
+;;    - Why qsort is 5x faster than quick-sort ?
 (defn qsort
   "Quick sort using where pivot is the first element of coll"
   [[pivot & xs]]
